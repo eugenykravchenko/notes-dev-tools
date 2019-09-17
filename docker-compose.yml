@@ -1,0 +1,51 @@
+version: '3.1'
+
+services:
+  ui:
+    image: ekravchenko/notes-ui:latest
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - '../notes-ui:/usr/src/app'
+    depends_on: 
+      - restapi
+    container_name: notes-ui
+
+  restapi:
+    image: ekravchenko/restapi:latest
+    restart: always
+    ports:
+      - 8000:8000
+    volumes:
+      - '../noderestapi:/usr/src/app'
+    depends_on: 
+      - mongo
+    container_name: notes-restapi
+    environment:
+      NOTES_CONNECTION_STRING: 'mongodb://notes-user:sa@mongo:27017/notes?retryWrites=true&w=majority'
+      ALLOWED_ORIGINS: 'http://localhost:3000'
+
+  mongo:
+    image: ekravchenko/notes-mongo:latest
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - './data/mongo:/data/db'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    container_name: notes-mongo
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
+    depends_on: 
+      - mongo
+    container_name: notes-mongo-express
